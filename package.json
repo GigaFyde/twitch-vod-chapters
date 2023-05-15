@@ -10,6 +10,6 @@
   "author": "GigaFyde",
   "license": "MIT",
   "dependencies": {
-    "node-fetch": "^3.3.1"
+    "twitch-gql": "^1.4.0"
   }
 }
