@@ -1,12 +1,26 @@
 'use strict'
 
-const TwitchGQL = require("twitch-gql").Init();
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
 module.exports = async (event, context) => {
+    const response = await fetch('https://gql.twitch.tv/gql', {
+        method: 'POST',
+        body: `[{"operationName":"VideoPlayer_ChapterSelectButtonVideo","variables\":{"includePrivate":false,"videoID":"${event.body.video_id}" },"extensions":{"persistedQuery":{"version":1,"sha256Hash":"8d2793384aac3773beab5e59bd5d6f585aedb923d292800119e03d40cd0f9b41"}}}]`
+        , headers: {
+            "authorization": `OAuth ${event.body.oauth}`
+        }});
+    const data = await response.json();
+    let result = [];
+    let res = data;
+    let edge = res[0].data.video["moments"].edges
+    for (let i = 0; i < edge.length; i++) {
+        result.push(
+            {
+                'game': edge[i].node.details.game.displayName,
+                'position': edge[i].node.positionMilliseconds
+            })
 
-    let VodMoments = TwitchGQL.GetVideoMoments(event.body.video_id);
-    let result = ({VodMoments: VodMoments[0].data.video.moments.edges.map(i => i.node)});
-
+    }
     return context
         .status(200)
         .headers({
